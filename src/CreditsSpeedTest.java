@@ -5,6 +5,10 @@
  * Description: Attempts a network packet flood on a credit node to test TPS and Block size.
  */
 
+/*
+ * This is a quick and dirty build for testing purposes don't expect perfect error handling and inheritance. (I may clean it up later)
+ */
+
 import com.credits.common.utils.TcpClient;
 import com.credits.leveldb.client.ApiClient;
 import com.credits.wallet.desktop.AppState;
@@ -23,7 +27,9 @@ public class CreditsSpeedTest {
 		
 		try {
 			Double balance = 0d;
+			//Keep funding random accounts until we have a working account.
 			while(balance<=0) {
+				balance = AppState.apiClient.getBalance(Config.wallet1PublicKey, "cs");
 				TcpClient.sendRequest(Config.fundIp, Config.fundPort, Config.wallet1PublicKey);
 				balance = AppState.apiClient.getBalance(Config.wallet1PublicKey, "cs");
 				System.out.println(balance);
@@ -40,7 +46,6 @@ public class CreditsSpeedTest {
 			
 			TPSSpammer spammer = new TPSSpammer(); 
 			spammer.spam();
-			
 		} 
 		catch (Exception e) {
 			e.printStackTrace();

@@ -1,6 +1,7 @@
 import java.security.PrivateKey;
 import com.credits.common.utils.Converter;
 import com.credits.crypto.Ed25519;
+import com.credits.leveldb.client.thrift.Transaction;
 
 public class SpamThread implements Runnable{
    private Thread thread;
@@ -15,20 +16,26 @@ public class SpamThread implements Runnable{
       System.out.println(String.format("Running %s", this.name));
       try {
     	  RawConnectionClient cAPI = new RawConnectionClient(Config.ip, Config.port);
-    	 
-    	  byte[] privateKeyByteArr = Converter.decodeFromBASE64(Config.wallet1PrivateKey);
+    	  
+    	  byte[] privateKeyByteArr = Converter.decodeFromBASE58(Config.wallet1PrivateKey);
     	  PrivateKey privateKey = Ed25519.bytesToPrivateKey(privateKeyByteArr);
-		
+    	  
     	  while(true) {
     		  try {
-    			  cAPI.send(Config.sample);
-    			  //cAPI.send(Utils.getTransactionPacket(Utils.createTransaction(Config.wallet1PublicKey, privateKey, Config.wallet1PublicKey, 0.1d, "cs")));
+    			  if(Config.sendReplayAttackSample) {
+    				  cAPI.send(Config.sample);
+    			  }
+    			  else {
+    				  Transaction transaction = Utils.createTransaction(Config.wallet1PublicKey, privateKey, Config.wallet2PublicKey, 0.1d, "cs");
+    				  byte[] transactionData = Utils.getTransactionPacket(transaction);
+    				  cAPI.send(transactionData);
+    			  }
     		  }
     		  catch(Exception e) {
     			  System.out.println("Error sending transactions.");
-    			  e.printStackTrace();
+    			  //e.printStackTrace();
     		  }
-    	 }
+    	  }
       } 
       catch (Exception e) {
          System.out.println(String.format("Thread interrupted %s", this.name));

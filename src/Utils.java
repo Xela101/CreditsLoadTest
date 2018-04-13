@@ -20,8 +20,8 @@ public class Utils {
 	public static String[] generateKeyPair() {
 		String[] pair = new String[2];
 		KeyPair keyPair = Ed25519.generateKeyPair();
-		pair[0] = Converter.encodeToBASE64(Ed25519.publicKeyToBytes(keyPair.getPublic()));
-		pair[1] = Converter.encodeToBASE64(Ed25519.privateKeyToBytes(keyPair.getPrivate()));
+		pair[0] = Converter.encodeToBASE58(Ed25519.publicKeyToBytes(keyPair.getPublic()));
+		pair[1] = Converter.encodeToBASE58(Ed25519.privateKeyToBytes(keyPair.getPrivate()));
 		System.out.println(String.format("Public: %s", pair[0]));
 		System.out.println(String.format("Private: %s", pair[1]));
 		return pair;
@@ -45,7 +45,7 @@ public class Utils {
 
 	    byte[] signature = Ed25519.sign(transaction.getBytes(StandardCharsets.US_ASCII), privateKey);
 	    
-	    return com.credits.common.utils.Converter.encodeToBASE64(signature);
+	    return com.credits.common.utils.Converter.encodeToBASE58(signature);
 	}
 	
 	//Create transaction.
@@ -90,7 +90,7 @@ public class Utils {
 	public static byte[] generateSample() {
 		byte[] privateKeyByteArr;
 		try {
-			privateKeyByteArr = Converter.decodeFromBASE64(Config.wallet1PrivateKey);
+			privateKeyByteArr = Converter.decodeFromBASE58(Config.wallet1PrivateKey);
 		
 	    	PrivateKey privateKey = Ed25519.bytesToPrivateKey(privateKeyByteArr);
 			
@@ -101,46 +101,47 @@ public class Utils {
     	
     		return Utils.getGroupedTransactionPacket(packetArray);
     	} 
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (CreditsException creditsException) {
+			creditsException.printStackTrace();
 		}
 		return null;
 	}
 	
-	//Construct a raw thrift transaction packet.
+	//Construct a raw thrift transaction packet. Main raw payload for fast transactions ;)
 	public static byte[] getTransactionPacket(Transaction transaction) {
 		try {
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			DataOutputStream dataOutputStream = new DataOutputStream(byteStream);
 			
 			int version = 0x80010000|(byte)1;
+			String call = "TransactionFlow";
 			
 			dataOutputStream.writeInt(version);
-			dataOutputStream.writeInt(15);
-			dataOutputStream.write("TransactionFlow".getBytes());
-			dataOutputStream.writeInt(0);
+			dataOutputStream.writeInt(call.length());
+			dataOutputStream.write(call.getBytes());
+			dataOutputStream.writeInt(2); //0
 			
 			dataOutputStream.writeByte(12);
 			dataOutputStream.writeShort(1);
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(1);
-			dataOutputStream.writeInt(8);
+			dataOutputStream.writeInt(transaction.hash.length());
 			dataOutputStream.write(transaction.hash.getBytes());
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(2);
-			dataOutputStream.writeInt(36);
+			dataOutputStream.writeInt(transaction.innerId.length());
 			dataOutputStream.write(transaction.innerId.getBytes());
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(3);
-			dataOutputStream.writeInt(44);
+			dataOutputStream.writeInt(transaction.source.length());
 			dataOutputStream.write(transaction.source.getBytes());
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(4);
-			dataOutputStream.writeInt(44);
+			dataOutputStream.writeInt(transaction.target.length());
 			dataOutputStream.write(transaction.target.getBytes());
 			
 			dataOutputStream.writeByte(12);
@@ -157,7 +158,7 @@ public class Utils {
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(6);
-			dataOutputStream.writeInt(91);
+			dataOutputStream.writeInt(transaction.currency.length());
 			dataOutputStream.write(transaction.currency.getBytes());
 			dataOutputStream.writeByte(0);
 			dataOutputStream.writeByte(0);

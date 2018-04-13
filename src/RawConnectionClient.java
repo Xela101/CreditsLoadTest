@@ -18,6 +18,8 @@ public class RawConnectionClient {
 			serverOutputStream = new DataOutputStream(clientSocket.getOutputStream());
 			serverInputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
+			
+			//Make sure to read data off socket so tcp receive buffer doesn't get full and hang the socket.
 			Thread thread = new Thread() {
 				public void run() {
 					char[] buffer = new char[1500];
@@ -27,10 +29,12 @@ public class RawConnectionClient {
 							Thread.sleep(10);
 						} 
 						catch (IOException ioException) {
-							ioException.printStackTrace();
+							//ioException.printStackTrace();
+							System.out.println("Error reading from socket!");
 						}
 						catch (InterruptedException interruptedException) {
-							interruptedException.printStackTrace();
+							//interruptedException.printStackTrace();
+							System.out.println("Error reading from socket!");
 						}
 					}
 				}
@@ -40,7 +44,8 @@ public class RawConnectionClient {
 			System.out.println(String.format("Connected %s:%d", apiServerHost, apiServerPort));
 		} 
 		catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("Error connecting to socket!");
 		}
 	}
 	

@@ -11,8 +11,8 @@ public class Config {
     public static int fundPort;
     public static int maxThreads;
     public static int maxSampleSize;
-    
     public static byte[] sample;
+    public static Boolean sendReplayAttackSample;
 	
     public static String wallet1PublicKey;
     public static String wallet1PrivateKey;
@@ -28,6 +28,15 @@ public class Config {
 		wallet1PrivateKey = pair[1];
 		wallet2PublicKey = pair[0];
 		wallet2PrivateKey = pair[1];
+    }
+    
+    public static void autoGenerateKeyPair() {
+		String[] pair1 = Utils.generateKeyPair();
+		String[] pair2 = Utils.generateKeyPair();
+		wallet1PublicKey = pair1[0];
+		wallet1PrivateKey = pair1[1];
+		wallet2PublicKey = pair2[0];
+		wallet2PrivateKey = pair2[1];
     }
     
     //Load configuration file and handle exceptions the old school way.
@@ -58,6 +67,7 @@ public class Config {
 			fundPort = Integer.parseInt(prop.getProperty("fundPort"));
 			maxThreads = Integer.parseInt(prop.getProperty("maxThreads"));
 			maxSampleSize = Integer.parseInt(prop.getProperty("maxSampleSize"));
+			sendReplayAttackSample = Boolean.parseBoolean(prop.getProperty("sendReplayAttackSample"));
 		} 
     	catch (IOException ioException) {
 			throw ioException;
