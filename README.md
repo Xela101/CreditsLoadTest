@@ -3,6 +3,11 @@ Tests the TPS Load of the Credits Cryptocurrency (http://www.credits.com)
 
 Credits is a Cryptocurrency that claims it will be the first to reach 1 million tps first with the potential of scaling even higher.
 
+# Changes
+
+Added nonblocking sockets with selectors to send and receive data asynchronous, let me know how you find it might remove the writes from the other selector functions was just trying to save an extra thread but might not be worth it. 
+
+If you get disconnected from the node try scale down the maxSampleSize the tcp send/receive buffer could be fulling up to the maximum and the node is forcing your socket close. 
 
 # Description
 This was a quick dirty build just for the purpose of testing the credits network.
