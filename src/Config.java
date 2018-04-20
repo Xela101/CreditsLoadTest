@@ -10,6 +10,7 @@ public class Config {
     public static String fundIp;
     public static int fundPort;
     public static int maxThreads;
+    public static int maxConnectionsPerThread;
     public static int maxSampleSize;
     public static byte[] sample;
     public static Boolean sendReplayAttackSample;
@@ -66,6 +67,7 @@ public class Config {
 			fundIp = prop.getProperty("fundIp");
 			fundPort = Integer.parseInt(prop.getProperty("fundPort"));
 			maxThreads = Integer.parseInt(prop.getProperty("maxThreads"));
+			maxConnectionsPerThread = Integer.parseInt(prop.getProperty("maxConnectionsPerThread"));
 			maxSampleSize = Integer.parseInt(prop.getProperty("maxSampleSize"));
 			sendReplayAttackSample = Boolean.parseBoolean(prop.getProperty("sendReplayAttackSample"));
 		} 

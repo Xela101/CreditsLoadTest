@@ -20,22 +20,20 @@ public class SpamThread implements Runnable{
     	  byte[] privateKeyByteArr = Converter.decodeFromBASE58(Config.wallet1PrivateKey);
     	  PrivateKey privateKey = Ed25519.bytesToPrivateKey(privateKeyByteArr);
     	  
-    	  while(true) {
-    		  try {
-    			  if(Config.sendReplayAttackSample) {
-    				  cAPI.send(Config.sample);
-    			  }
-    			  else {
-    				  Transaction transaction = Utils.createTransaction(Config.wallet1PublicKey, privateKey, Config.wallet2PublicKey, 0.1d, "cs");
-    				  byte[] transactionData = Utils.getTransactionPacket(transaction);
-    				  cAPI.send(transactionData);
-    			  }
-    		  }
-    		  catch(Exception e) {
-    			  System.out.println("Error sending transactions.");
-    			  //e.printStackTrace();
-    		  }
+    	  if(Config.sendReplayAttackSample) {
+    		  cAPI.setSendData(() -> { 
+        		  return Config.sample;
+        	  });
     	  }
+    	  else {
+    		  cAPI.setSendData(() -> { 
+    			  Transaction transaction = Utils.createTransaction(Config.wallet1PublicKey, privateKey, Config.wallet2PublicKey, 1d, "cs");
+				  byte[] transactionData = Utils.getTransactionPacket(transaction);
+				  return transactionData;
+        	  });
+    	  }
+    	  
+    	  cAPI.start();
       } 
       catch (Exception e) {
          System.out.println(String.format("Thread interrupted %s", this.name));

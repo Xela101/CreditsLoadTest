@@ -54,11 +54,11 @@ public class Utils {
 			String hash = Utils.generateTransactionHash();
 			String innerId = UUID.randomUUID().toString();
 			
-			String signatureBASE64 = Utils.generateSignOfTransaction(hash, innerId, sourcePublicKey, targetPublicKey, amount, currency, sourcePrivateKey);
+			String signatureBASE58 = Utils.generateSignOfTransaction(hash, innerId, sourcePublicKey, targetPublicKey, amount, currency, sourcePrivateKey);
 			
 			Amount serverAmount = com.credits.leveldb.client.util.Converter.doubleToAmount(amount);
 			
-			currency = String.format("%s|%s", new Object[] { currency, signatureBASE64 });
+			currency = String.format("%s|%s", new Object[] { currency, signatureBASE58 });
 	
 			return new Transaction(hash, innerId, sourcePublicKey, targetPublicKey, serverAmount, currency);
 		} 
