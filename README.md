@@ -6,6 +6,7 @@ Credits is a Cryptocurrency that claims it will be the first to reach 1 million 
 # Changes
 
 *New version*
+
 You can now compile the project without having to install eclipse. Just start the "compile.bat" file and then start the "run.bat" file and it should run, keep in mind you will need to edit the "config.properties" file and point the ip property to the ip address of your node, if you are running the node locally you can leave it as "localhost".
 
 Replay attack at a large scale has been prevented so I have removed the multipacket sends(Transaction speed per node may decrease a bit). Each transaction should now be unique.
@@ -13,6 +14,7 @@ Replay attack at a large scale has been prevented so I have removed the multipac
 Transaction spammer now sends between two different addresses. I added this just incase the beta prevents us from sending transactions to itself.
 
 *Older version*
+
 Added nonblocking sockets with selectors to send and receive data asynchronous, let me know how you find it might remove the writes from the other selector functions was just trying to save an extra thread but might not be worth it. 
 
 If you get disconnected from the node try scale down the maxSampleSize the tcp send/receive buffer could be fulling up to the maximum and the node is forcing your socket close. 
