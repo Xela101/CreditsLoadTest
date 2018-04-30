@@ -1,2 +1,2 @@
-java -jar CreditsTPSRipper.jar
+java -jar CreditsLoadTest.jar
 pause
