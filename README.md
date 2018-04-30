@@ -9,17 +9,23 @@ Credits is a Cryptocurrency that claims it will be the first to reach 1 million 
 
 You can now compile the project without having to install eclipse. Just start the "compile.bat" file and then start the "run.bat" file and it should run, keep in mind you will need to edit the "config.properties" file and point the ip property to the ip address of your node, if you are running the node locally you can leave it as "localhost".
 
+
 Replay attack at a large scale has been prevented so I have removed the multipacket sends(Transaction speed per node may decrease a bit). Each transaction should now be unique.
+
 
 Transaction spammer now sends between two different addresses. I added this just incase the beta prevents us from sending transactions to itself.
 
+
 Changed transaction amount types from decimal to Big Decimal.
+
 
 *Older version*
 
 Added nonblocking sockets with selectors to send and receive data asynchronous, let me know how you find it might remove the writes from the other selector functions was just trying to save an extra thread but might not be worth it. 
 
+
 If you get disconnected from the node try scale down the maxSampleSize the tcp send/receive buffer could be fulling up to the maximum and the node is forcing your socket close. 
+
 
 # Description
 This was a quick dirty build just for the purpose of testing the credits network.
@@ -37,8 +43,11 @@ Download Java SDK
 *Java utilitys*
 
 Edit the "compile.bat" file point the java files to the location installed on your computer.
+
 Edit the "config.properties"
+
 Start the "compile.bat"
+
 Start the "run.bat"
 
 
