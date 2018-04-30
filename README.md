@@ -13,6 +13,8 @@ Replay attack at a large scale has been prevented so I have removed the multipac
 
 Transaction spammer now sends between two different addresses. I added this just incase the beta prevents us from sending transactions to itself.
 
+Changed transaction amount types from decimal to Big Decimal.
+
 *Older version*
 
 Added nonblocking sockets with selectors to send and receive data asynchronous, let me know how you find it might remove the writes from the other selector functions was just trying to save an extra thread but might not be worth it. 
