@@ -1,4 +1,6 @@
 # CreditsLoadTest
+Requires JDK 10 to build.
+
 Tests the TPS Load of the Credits Cryptocurrency (http://www.credits.com)
 
 Credits is a Cryptocurrency that claims it will be the first to reach 1 million tps first with the potential of scaling even higher.
