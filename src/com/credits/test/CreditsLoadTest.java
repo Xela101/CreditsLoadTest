@@ -3,6 +3,8 @@ package com.credits.test;
  * Title: Credits TPS Speed test.
  * Author: Alex White.
  * Twitter: @AlexTech101
+ * Telegram: @Xela101
+ * Email: whitexela101@gmail.com
  * Version: 1.3.0.1
  * Description: Attempts a network packet flood on a credit node to test TPS and Block size.
  */
