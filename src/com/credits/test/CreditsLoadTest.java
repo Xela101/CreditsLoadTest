@@ -52,23 +52,16 @@ public class CreditsLoadTest {
 		Config.wallet2PrivateKey = "";
 		
 		/*AppState.apiClient = ApiClient.getInstance(Config.ip, Config.port);
-		 while(true) {
 			try {	
 				byte[] privateKeyByteArr = Converter.decodeFromBASE58(Config.wallet1PrivateKey);
 		    	PrivateKey privateKey = Ed25519.bytesToPrivateKey(privateKeyByteArr);
 		    	
-		    	String hash = Utils.generateTransactionHash();
 		    	long innerId = Utils.generateTransactionInnerId();
-				//String innerId = UUID.randomUUID().toString();
-				//String innerId = "";
 				String source = Config.wallet1PublicKey;
 				String target = Config.wallet2PublicKey;
-				//BigDecimal amount = balance.divide(new BigDecimal(2.0));
 				
-				//BigDecimal balance = AppState.apiClient.getBalance(Converter.decodeFromBASE58(Config.wallet1PublicKey), (byte)1);
-				//System.out.println(balance);
-				//BigDecimal amount = new BigDecimal(1.0);
-				BigDecimal balance = new BigDecimal(1);
+				BigDecimal balance = AppState.apiClient.getBalance(Converter.decodeFromBASE58(Config.wallet1PublicKey), (byte)1);
+				System.out.println(balance);
 				BigDecimal amount = new BigDecimal("0.1");
 				BigDecimal fee = BigDecimal.ZERO;
 				
@@ -78,12 +71,10 @@ public class CreditsLoadTest {
 		        AppState.apiClient.transactionFlow(transactionFlowData, false);
 
 				System.out.println("Sent");
-				Thread.sleep(1);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;
-			}
-		}*/
+			}*/
 		
 		TPSSpammer spammer = new TPSSpammer(); 
 		spammer.spam();
