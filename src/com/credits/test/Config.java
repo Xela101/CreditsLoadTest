@@ -61,8 +61,6 @@ public class Config {
 			
 			ip = prop.getProperty("ip");
 			port = Integer.parseInt(prop.getProperty("port"));
-			fundIp = prop.getProperty("fundIp");
-			fundPort = Integer.parseInt(prop.getProperty("fundPort"));
 			maxThreads = Integer.parseInt(prop.getProperty("maxThreads"));
 			maxConnectionsPerThread = Integer.parseInt(prop.getProperty("maxConnectionsPerThread"));
 		} 

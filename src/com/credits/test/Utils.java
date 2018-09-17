@@ -3,9 +3,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,8 +15,13 @@ import com.credits.common.exception.CreditsException;
 import com.credits.common.utils.Converter;
 import com.credits.crypto.Blake2S;
 import com.credits.crypto.Ed25519;
+import com.credits.crypto.exception.CreditsCryptoException;
+import com.credits.leveldb.client.data.TransactionFlowData;
 import com.credits.leveldb.client.thrift.Amount;
+import com.credits.leveldb.client.thrift.SmartContract;
 import com.credits.leveldb.client.thrift.Transaction;
+import com.credits.leveldb.client.util.LevelDbClientConverter;
+import com.credits.wallet.desktop.utils.struct.TransactionStruct;
 
 public class Utils {
 	public static boolean validateKeys(String publicKey, String privateKey) {
@@ -55,46 +62,27 @@ public class Utils {
 		return pair;
 	}
 	
-	//Generate transaction hash.
-	public static String generateTransactionHash() throws CreditsException {
-		byte[] hashBytes = Blake2S.generateHash(4);
-		return com.credits.leveldb.client.util.Converter.bytesToHex(hashBytes);
-	}
-	
-	  public static String generateSignOfTransaction(String hash, String innerId, String source, String target, BigDecimal amount, String currency, PrivateKey privateKey) throws Exception
-	  {
-	    Amount amountValue = com.credits.leveldb.client.util.Converter.bigDecimalToAmount(amount);
-	    
-	    Integer amountIntegral = Integer.valueOf(amountValue.getIntegral());
-	    Long amountFraction = Long.valueOf(amountValue.getFraction());
-	    
-	    String transaction = String.format("%s|%s|%s|%s|%s:%s|%s", new Object[] { hash, innerId, source, target, com.credits.common.utils.Converter.toString(amountIntegral), com.credits.common.utils.Converter.toString(amountFraction), currency });
-	    
-	    byte[] signature = Ed25519.sign(transaction.getBytes(StandardCharsets.US_ASCII), privateKey);
-	    
-	    return com.credits.common.utils.Converter.encodeToBASE58(signature);
-	  }
+	public static long generateTransactionInnerId() {
+        return new Date().getTime();
+    }
 	
 	//Create transaction.
-	public static Transaction createTransaction(String sourcePublicKey, PrivateKey sourcePrivateKey, String targetPublicKey, BigDecimal amount, String currency) {
+	public static TransactionFlowData createTransaction(String sourcePublicKey, PrivateKey sourcePrivateKey, String targetPublicKey, BigDecimal amount, BigDecimal balance, String currency) {
 		try {
-			String hash = Utils.generateTransactionHash();
-			String innerId = UUID.randomUUID().toString();
+			long innerId = Utils.generateTransactionInnerId();
+			BigDecimal fee = BigDecimal.ZERO;
+
+			TransactionStruct tStruct = new TransactionStruct(innerId, sourcePublicKey, targetPublicKey, amount, fee, (byte)1, (byte[])null);
+			ByteBuffer signature = Utils.signTransactionStruct(tStruct, sourcePrivateKey);
 			
-			String signatureBASE58 = Utils.generateSignOfTransaction(hash, innerId, sourcePublicKey, targetPublicKey, amount, currency, sourcePrivateKey);
-			
-			Amount serverAmount = com.credits.leveldb.client.util.Converter.bigDecimalToAmount(amount);
-			
-			currency = String.format("%s|%s", new Object[] { currency, signatureBASE58 });
-	
-			return new Transaction(hash, innerId, sourcePublicKey, targetPublicKey, serverAmount, currency);
+			TransactionFlowData transaction = new TransactionFlowData(innerId, Converter.decodeFromBASE58(sourcePublicKey), Converter.decodeFromBASE58(targetPublicKey), amount, balance, (byte)1, signature.array(), fee);			
+			return transaction;
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
 	
 	//Generate a grouped transaction packet to make use of TCP congestion alg.
 	public static byte[] getGroupedTransactionPacket(List<byte[]> packets) {
@@ -114,8 +102,33 @@ public class Utils {
 		return null;
 	}
 	
+	public static ByteBuffer signTransactionStruct(TransactionStruct tStruct, PrivateKey privateKey) {
+	      ByteBuffer signature;
+	      try {
+	         byte[] tArr = tStruct.getBytes();
+	         String arrStr = "";
+
+	         for(int i = 0; i < tArr.length; ++i) {
+	            arrStr = arrStr + (i == 0 ? "" : ", ") + tArr[i];
+	         }
+
+	         byte[] signatureArr = Ed25519.sign(tArr, privateKey);
+	         arrStr = "";
+
+	         for(int i = 0; i < signatureArr.length; ++i) {
+	            arrStr = arrStr + (i == 0 ? "" : ", ") + signatureArr[i];
+	         }
+
+	         signature = ByteBuffer.wrap(signatureArr);
+	      } catch (Exception var6) {
+	         signature = ByteBuffer.wrap(new byte[0]);
+	      }
+
+	      return signature;
+	   }
+	
 	//Construct a raw thrift transaction packet. Main raw payload for fast transactions ;)
-	public static byte[] getTransactionPacket(Transaction transaction) {
+	public static byte[] getTransactionPacket(TransactionFlowData transaction) {
 		try {
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			DataOutputStream dataOutputStream = new DataOutputStream(byteStream);
@@ -131,43 +144,69 @@ public class Utils {
 			dataOutputStream.writeByte(12);
 			dataOutputStream.writeShort(1);
 			
-			dataOutputStream.writeByte(11);
+			dataOutputStream.writeByte(10);
 			dataOutputStream.writeShort(1);
-			dataOutputStream.writeInt(transaction.hash.length());
-			dataOutputStream.write(transaction.hash.getBytes());
+			dataOutputStream.writeLong(transaction.getInnerId());
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(2);
-			dataOutputStream.writeInt(transaction.innerId.length());
-			dataOutputStream.write(transaction.innerId.getBytes());
+			dataOutputStream.writeInt(transaction.getSource().length);
+			dataOutputStream.write(transaction.getSource());
 			
 			dataOutputStream.writeByte(11);
 			dataOutputStream.writeShort(3);
-			dataOutputStream.writeInt(transaction.source.length());
-			dataOutputStream.write(transaction.source.getBytes());
+			dataOutputStream.writeInt(transaction.getTarget().length);
+			dataOutputStream.write(transaction.getTarget());
 			
-			dataOutputStream.writeByte(11);
+			dataOutputStream.writeByte(12);
 			dataOutputStream.writeShort(4);
-			dataOutputStream.writeInt(transaction.target.length());
-			dataOutputStream.write(transaction.target.getBytes());
+			
+			Amount amountValue = LevelDbClientConverter.bigDecimalToAmount(transaction.getAmount());
+			dataOutputStream.writeByte(8);
+			dataOutputStream.writeShort(1);
+			dataOutputStream.writeInt(amountValue.integral);
+			
+			dataOutputStream.writeByte(10);
+			dataOutputStream.writeShort(2);
+			dataOutputStream.writeLong(amountValue.fraction);
+			dataOutputStream.writeByte(0);
 			
 			dataOutputStream.writeByte(12);
 			dataOutputStream.writeShort(5);
 			
+			Amount balanceValue = LevelDbClientConverter.bigDecimalToAmount(transaction.getBalance());
 			dataOutputStream.writeByte(8);
 			dataOutputStream.writeShort(1);
-			dataOutputStream.writeInt(transaction.amount.integral);
+			dataOutputStream.writeInt(balanceValue.integral);
 			
 			dataOutputStream.writeByte(10);
 			dataOutputStream.writeShort(2);
-			dataOutputStream.writeLong(transaction.amount.fraction);
+			dataOutputStream.writeLong(balanceValue.fraction);
 			dataOutputStream.writeByte(0);
 			
-			dataOutputStream.writeByte(11);
+			dataOutputStream.writeByte(3);
 			dataOutputStream.writeShort(6);
-			dataOutputStream.writeInt(transaction.currency.length());
-			dataOutputStream.write(transaction.currency.getBytes());
+			dataOutputStream.write(transaction.getCurrency());
+			
+			dataOutputStream.writeByte(11);
+			dataOutputStream.writeShort(7);
+			dataOutputStream.writeInt(transaction.getSignature().length);
+			dataOutputStream.write(transaction.getSignature());
+			
+			dataOutputStream.writeByte(12);
+			dataOutputStream.writeShort(9);
+			
+			Amount feeValue = LevelDbClientConverter.bigDecimalToAmount(transaction.getFee());
+			dataOutputStream.writeByte(8);
+			dataOutputStream.writeShort(1);
+			dataOutputStream.writeInt(feeValue.integral);
+			
+			dataOutputStream.writeByte(10);
+			dataOutputStream.writeShort(2);
+			dataOutputStream.writeLong(feeValue.fraction);
 			dataOutputStream.writeByte(0);
+			dataOutputStream.writeByte(0);
+			
 			dataOutputStream.writeByte(0);
 			
 			return byteStream.toByteArray();

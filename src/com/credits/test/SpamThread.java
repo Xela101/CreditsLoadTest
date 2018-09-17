@@ -4,6 +4,7 @@ import java.nio.channels.SocketChannel;
 import java.security.PrivateKey;
 import com.credits.common.utils.Converter;
 import com.credits.crypto.Ed25519;
+import com.credits.leveldb.client.data.TransactionFlowData;
 import com.credits.leveldb.client.thrift.Transaction;
 
 public class SpamThread implements Runnable{
@@ -28,15 +29,24 @@ public class SpamThread implements Runnable{
     	  
     	  cAPI.start();
     	  
+    	  BigDecimal total1 = new BigDecimal(1);
+    	  BigDecimal total2 = new BigDecimal(1);
+    	  
     	  while(true) {
     		  for(int i=0;i<cAPI.Sockets.size();i++) {
     			  SocketChannel socketChannel = cAPI.Sockets.get(i);
     			  if(socketChannel.isConnected()) {
-	    			  Transaction transaction;
-	    			  if(i%2==0)
-	    				  transaction = Utils.createTransaction(Config.wallet1PublicKey, privateKey1, Config.wallet2PublicKey, new BigDecimal(0.001), "cs");
-	    			  else 
-	    				  transaction = Utils.createTransaction(Config.wallet2PublicKey, privateKey2, Config.wallet1PublicKey, new BigDecimal(0.001), "cs");
+	    			  TransactionFlowData transaction;
+	    			  if(i%2==0) {
+	    				  total1.subtract(new BigDecimal("0.01"));
+	    				  total2.add(new BigDecimal("0.01"));
+	    				  transaction = Utils.createTransaction(Config.wallet1PublicKey, privateKey1, Config.wallet2PublicKey, new BigDecimal("0.01"), total1, "cs");
+	    			  }
+	    			  else { 
+	    				  total2.subtract(new BigDecimal("0.01"));
+	    				  total1.add(new BigDecimal("0.01"));
+	    				  transaction = Utils.createTransaction(Config.wallet2PublicKey, privateKey2, Config.wallet1PublicKey, new BigDecimal("0.01"), total2, "cs");
+	    			  }
 	    			  
 	    			  byte[] transactionData = Utils.getTransactionPacket(transaction);
 	    			  cAPI.send(socketChannel, transactionData);
