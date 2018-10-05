@@ -18,6 +18,7 @@ public class Config {
     public static String wallet2PublicKey;
     public static String wallet2PrivateKey;
     public static String currency = "cs";
+    public static int cur = 1;
     
     //Load configuration file and handle exceptions the old school way.
     public static void autoGenerateSameKeyPair() {

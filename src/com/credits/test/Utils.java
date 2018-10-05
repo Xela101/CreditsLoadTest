@@ -4,23 +4,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
-import com.credits.common.exception.CreditsException;
 import com.credits.common.utils.Converter;
-import com.credits.crypto.Blake2S;
 import com.credits.crypto.Ed25519;
-import com.credits.crypto.exception.CreditsCryptoException;
 import com.credits.leveldb.client.data.TransactionFlowData;
 import com.credits.leveldb.client.thrift.Amount;
-import com.credits.leveldb.client.thrift.SmartContract;
-import com.credits.leveldb.client.thrift.Transaction;
 import com.credits.leveldb.client.util.LevelDbClientConverter;
+import com.credits.wallet.desktop.AppState;
 import com.credits.wallet.desktop.utils.struct.TransactionStruct;
 
 public class Utils {
@@ -44,6 +38,34 @@ public class Utils {
 	    }
 	    return false;
 	 }
+	
+	public static void open(String pubKey, String privKey) {
+		AppState.account = pubKey;
+		if (AppState.newAccount) {
+			try {
+
+			} catch (Exception e) {
+				System.err.println(e.toString());
+			}
+		} else {
+			try {
+				byte[] publicKeyByteArr = Converter.decodeFromBASE58(pubKey);
+				byte[] privateKeyByteArr = Converter.decodeFromBASE58(privKey);
+				AppState.publicKey = Ed25519.bytesToPublicKey(publicKeyByteArr);
+				AppState.privateKey = Ed25519.bytesToPrivateKey(privateKeyByteArr);
+			} catch (Exception e) {
+				if (e.getMessage() != null) {
+					System.err.println(e.toString());
+				}
+			}
+		}
+		if (validateKeys(pubKey, privKey)) {
+			System.out.println("Valid key. Login successful");
+
+		} else {
+
+		}
+	}
 	
 	//Generate transaction hash.
 	public static String[] generateKeyPair() {
