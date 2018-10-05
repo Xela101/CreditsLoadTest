@@ -1,2 +1,0 @@
-Main-Class: com.credits.test.CreditsLoadTest
-Class-Path: jar/wallet-desktop.jar
